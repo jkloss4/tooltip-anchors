@@ -273,6 +273,21 @@ tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsInCombatItemTips", lab
 tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsInCombatActionTips", label = "Hide Action Bar Tips", tip = "When you have this option checked, Action Bar Tips will be hidden in combat.", belongsTo = "hideTipsInCombatHeader" });
 tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsInCombatExpBarTips", label = "Hide Exp Bar Tips", tip = "When you have this option checked, Experience Bar Tips will be hidden in combat.", x = 160, belongsTo = "hideTipsInCombatActionTips" });
 
+priority = priority + 1;
+tinsert(ttOptionsHiding, { type = "Header", var = "hideTipsWhileGatheringHeader", label = "Priority #" .. priority .. ": Hide Tips While Gathering Or Fishing" });
+
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringWorldUnits", label = "Hide World Units", tip = "When you have this option checked, World Units will be hidden while gathering (herbs, ore, skins) or fishing.", belongsTo = "hideTipsWhileGatheringHeader" });
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringFrameUnits", label = "Hide Frame Units", tip = "When you have this option checked, Frame Units will be hidden while gathering (herbs, ore, skins) or fishing.", x = 160, belongsTo = "hideTipsWhileGatheringWorldUnits" });
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringWorldTips", label = "Hide World Tips", tip = "When you have this option checked, World Tips will be hidden while gathering (herbs, ore, skins) or fishing.", belongsTo = "hideTipsWhileGatheringHeader" });
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringFrameTips", label = "Hide Frame Tips", tip = "When you have this option checked, Frame Tips will be hidden while gathering (herbs, ore, skins) or fishing.", x = 160, belongsTo = "hideTipsWhileGatheringWorldTips" });
+
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringUnitTips", label = "Hide Unit Tips", tip = "When you have this option checked, Unit Tips will be hidden while gathering (herbs, ore, skins) or fishing.", y = 10, belongsTo = "hideTipsWhileGatheringHeader" });
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringSpellTips", label = "Hide Spell Tips", tip = "When you have this option checked, Spell Tips will be hidden while gathering (herbs, ore, skins) or fishing.", x = 160, belongsTo = "hideTipsWhileGatheringUnitTips" });
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringItemTips", label = "Hide Item Tips", tip = "When you have this option checked, Item Tips will be hidden while gathering (herbs, ore, skins) or fishing.", belongsTo = "hideTipsWhileGatheringHeader" });
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringActionTips", label = "Hide Action Bar Tips", tip = "When you have this option checked, Action Bar Tips will be hidden while gathering (herbs, ore, skins) or fishing.", belongsTo = "hideTipsWhileGatheringHeader" });
+tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWhileGatheringExpBarTips", label = "Hide Exp Bar Tips", tip = "When you have this option checked, Experience Bar Tips will be hidden while gathering (herbs, ore, skins) or fishing.", x = 160, belongsTo = "hideTipsWhileGatheringActionTips" });
+
+priority = priority + 1;
 tinsert(ttOptionsHiding, { type = "Header", var = "hideTipsHeader", label = "Priority #" .. priority .. ": Hide Tips Out Of Combat" });
 
 tinsert(ttOptionsHiding, { type = "Check", var = "hideTipsWorldUnits", label = "Hide World Units", tip = "When you have this option checked, World Units will be hidden.", belongsTo = "hideTipsHeader" });

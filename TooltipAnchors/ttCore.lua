@@ -203,7 +203,17 @@ local TT_DefaultConfig = {
 	hideTipsInCombatItemTips = false,
 	hideTipsInCombatActionTips = false,
 	hideTipsInCombatExpBarTips = false,
-	
+
+	hideTipsWhileGatheringWorldUnits = false,
+	hideTipsWhileGatheringWorldTips = false,
+	hideTipsWhileGatheringFrameUnits = false,
+	hideTipsWhileGatheringFrameTips = false,
+	hideTipsWhileGatheringUnitTips = false,
+	hideTipsWhileGatheringSpellTips = false,
+	hideTipsWhileGatheringItemTips = false,
+	hideTipsWhileGatheringActionTips = false,
+	hideTipsWhileGatheringExpBarTips = false,
+
 	hideTipsWorldUnits = false,
 	hideTipsWorldTips = false,
 	hideTipsFrameUnits = false,
@@ -1027,6 +1037,39 @@ function tt:HideShoppingTips(tip)
 	end
 end
 
+-- gathering and fishing casts: herb gathering, mining, skinning and fishing (classic and retail fishing spells).
+-- matched by name, so every rank and expansion variant of the cast counts; names come from the game, so it works in
+-- any language.
+local TT_GatheringSpellIDs = { 2366, 2575, 8613, 7620, 131474 };
+local TT_GatheringSpellNames;
+
+local function GetGatheringSpellNames()
+	if (not TT_GatheringSpellNames) then
+		TT_GatheringSpellNames = {};
+
+		for _, spellID in ipairs(TT_GatheringSpellIDs) do
+			local name = (C_Spell and C_Spell.GetSpellName) and C_Spell.GetSpellName(spellID) or (GetSpellInfo and GetSpellInfo(spellID));
+
+			if (name) then
+				TT_GatheringSpellNames[name] = true;
+			end
+		end
+	end
+
+	return TT_GatheringSpellNames;
+end
+
+-- whether the player is gathering (herbs, ore, skins) or fishing
+function tt:IsGathering()
+	local name = UnitCastingInfo("player") or UnitChannelInfo("player");
+
+	if (not name) or (issecretvalue and issecretvalue(name)) then
+		return false;
+	end
+
+	return (GetGatheringSpellNames()[name] == true);
+end
+
 -- hide tips if need to be hidden
 function tt:HideTipsIfNeedToBeHidden()
 	-- hide tip if needs to be hidden
@@ -1133,6 +1176,15 @@ tt:RegisterEvent("PLAYER_REGEN_ENABLED");
 tt:RegisterEvent("PLAYER_REGEN_DISABLED");
 tt:RegisterEvent("UPDATE_BONUS_ACTIONBAR");
 tt:RegisterEvent("MODIFIER_STATE_CHANGED");
+
+-- a gathering or fishing cast starting or ending: tips shown now may need hiding
+local frameForGatheringCasts = CreateFrame("Frame");
+
+frameForGatheringCasts:RegisterUnitEvent("UNIT_SPELLCAST_START", "player");
+frameForGatheringCasts:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "player");
+frameForGatheringCasts:SetScript("OnEvent", function()
+	tt:HideTipsIfNeedToBeHidden();
+end);
 
 -- register for group events
 LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
@@ -2130,7 +2182,11 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 		if (hidingTip == "") and (UnitAffectingCombat("player")) then
 			hidingTip = "InCombat";
 		end
-		
+
+		if (hidingTip == "") and (tt:IsGathering()) then
+			hidingTip = "WhileGathering";
+		end
+
 		-- check if tooltip needs to be hidden
 		if (currentDisplayParams.anchorFrameName) then
 			if (cfg["hideTips" .. hidingTip .. currentDisplayParams.anchorFrameName .. "s"]) then
