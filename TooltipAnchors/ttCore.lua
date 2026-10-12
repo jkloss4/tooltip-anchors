@@ -2119,11 +2119,12 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 			end
 		end
 		
-		-- unhandled tip content (e.g. a world object like a fishing bobber or a herb node): only the world/frame tip
-		-- options apply to it, since they're about where the tip shows rather than what it's about
+		-- unhandled tip content: only a world object (a tip from hovering the world that isn't a unit, e.g. a fishing
+		-- bobber, herb or ore node, chest or mailbox) is considered, by the "World Objects" options
 		local isHandledTipContent = (LibFroznFunctions:ExistsInTable(tipContent, { TT_TIP_CONTENT.unit, TT_TIP_CONTENT.aura, TT_TIP_CONTENT.spell, TT_TIP_CONTENT.item, TT_TIP_CONTENT.action })) or (isTipFromExpBar);
+		local isWorldObject = (not isHandledTipContent) and (currentDisplayParams.anchorFrameName == "WorldTip");
 
-		if (not isHandledTipContent) and (not currentDisplayParams.anchorFrameName) then
+		if (not isHandledTipContent) and (not isWorldObject) then
 			return;
 		end
 		
