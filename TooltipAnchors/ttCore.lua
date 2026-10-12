@@ -151,6 +151,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringChallengeModeInCombatUnitTips = false,
 	hideTipsDuringChallengeModeInCombatSpellTips = false,
 	hideTipsDuringChallengeModeInCombatItemTips = false,
+	hideTipsDuringChallengeModeInCombatObjectTips = false,
 	hideTipsDuringChallengeModeInCombatActionTips = false,
 	hideTipsDuringChallengeModeInCombatExpBarTips = false,
 	
@@ -161,6 +162,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringChallengeModeUnitTips = false,
 	hideTipsDuringChallengeModeSpellTips = false,
 	hideTipsDuringChallengeModeItemTips = false,
+	hideTipsDuringChallengeModeObjectTips = false,
 	hideTipsDuringChallengeModeActionTips = false,
 	hideTipsDuringChallengeModeExpBarTips = false,
 	
@@ -171,6 +173,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringInstanceInCombatUnitTips = false,
 	hideTipsDuringInstanceInCombatSpellTips = false,
 	hideTipsDuringInstanceInCombatItemTips = false,
+	hideTipsDuringInstanceInCombatObjectTips = false,
 	hideTipsDuringInstanceInCombatActionTips = false,
 	hideTipsDuringInstanceInCombatExpBarTips = false,
 	
@@ -181,6 +184,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringInstanceUnitTips = false,
 	hideTipsDuringInstanceSpellTips = false,
 	hideTipsDuringInstanceItemTips = false,
+	hideTipsDuringInstanceObjectTips = false,
 	hideTipsDuringInstanceActionTips = false,
 	hideTipsDuringInstanceExpBarTips = false,
 	
@@ -191,6 +195,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringSkyridingUnitTips = false,
 	hideTipsDuringSkyridingSpellTips = false,
 	hideTipsDuringSkyridingItemTips = false,
+	hideTipsDuringSkyridingObjectTips = false,
 	hideTipsDuringSkyridingActionTips = false,
 	hideTipsDuringSkyridingExpBarTips = false,
 	
@@ -201,6 +206,7 @@ local TT_DefaultConfig = {
 	hideTipsInCombatUnitTips = false,
 	hideTipsInCombatSpellTips = false,
 	hideTipsInCombatItemTips = false,
+	hideTipsInCombatObjectTips = false,
 	hideTipsInCombatActionTips = false,
 	hideTipsInCombatExpBarTips = false,
 
@@ -211,6 +217,7 @@ local TT_DefaultConfig = {
 	hideTipsWhileGatheringUnitTips = false,
 	hideTipsWhileGatheringSpellTips = false,
 	hideTipsWhileGatheringItemTips = false,
+	hideTipsWhileGatheringObjectTips = false,
 	hideTipsWhileGatheringActionTips = false,
 	hideTipsWhileGatheringExpBarTips = false,
 
@@ -221,6 +228,7 @@ local TT_DefaultConfig = {
 	hideTipsUnitTips = false,
 	hideTipsSpellTips = false,
 	hideTipsItemTips = false,
+	hideTipsObjectTips = false,
 	hideTipsActionTips = false,
 	hideTipsExpBarTips = false,
 	
@@ -2191,14 +2199,18 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 		end
 
 		-- check if tooltip needs to be hidden
-		if (currentDisplayParams.anchorFrameName) then
+		if (currentDisplayParams.anchorFrameName) and (not isWorldObject) then
 			if (cfg["hideTips" .. hidingTip .. currentDisplayParams.anchorFrameName .. "s"]) then
 				currentDisplayParams.hideTip = true;
 				return;
 			end
 		end
 
-		if (not isHandledTipContent) then
+		if (isWorldObject) then
+			if (cfg["hideTips" .. hidingTip .. "ObjectTips"]) then
+				currentDisplayParams.hideTip = true;
+			end
+
 			return;
 		end
 
