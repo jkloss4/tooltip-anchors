@@ -32,7 +32,7 @@ local DROPDOWN_ANCHORPOS = {
 -- Options: "y" adds space above an item; "x" puts a checkbox in the second column of the row above.
 
 -- Anchors
--- offset slider for the given anchor frame ("WorldUnit", "WorldTip", "FrameUnit", "FrameTip") and axis ("X", "Y")
+-- offset slider for the given anchor frame ("WorldUnit", "WorldTip", "WorldObject", "FrameUnit", "FrameTip") and axis ("X", "Y")
 local function GetOffsetOption(anchorFrameName, axis)
 	return { type = "Slider", var = "mouseOffset" .. anchorFrameName .. axis, label = axis .. " Offset", tip = "Offset of the tooltip from its anchor position, for any anchor type", min = -200, max = 200, step = 1, fontSizeDelta = -2, enabled = function(factory) return factory:GetConfigValue("enableAnchor") end };
 end
@@ -42,7 +42,7 @@ local function AnchorEnabled(factory) return factory:GetConfigValue("enableAncho
 -- the default anchor settings: a header per anchor frame ("World Unit", ...) with its type, point and offsets
 local ttOptionsAnchors = {};
 
-for _, anchorFrame in ipairs({ { "WorldUnit", "World Unit" }, { "WorldTip", "World Tip" }, { "FrameUnit", "Frame Unit" }, { "FrameTip", "Frame Tip" } }) do
+for _, anchorFrame in ipairs({ { "WorldUnit", "World Unit" }, { "WorldTip", "World Tip" }, { "WorldObject", "World Object" }, { "FrameUnit", "Frame Unit" }, { "FrameTip", "Frame Tip" } }) do
 	local name, label = anchorFrame[1], anchorFrame[2];
 	tinsert(ttOptionsAnchors, { type = "Header", label = label, enabled = AnchorEnabled });
 	tinsert(ttOptionsAnchors, { type = "DropDown", var = "anchor" .. name .. "Type", label = "Type", tip = "How " .. label .. " tooltips are anchored", list = DROPDOWN_ANCHORTYPE, enabled = AnchorEnabled });

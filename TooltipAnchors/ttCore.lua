@@ -47,6 +47,8 @@ local TT_DefaultConfig = {
 	anchorWorldUnitPoint = "BOTTOMRIGHT",
 	anchorWorldTipType = "normal",
 	anchorWorldTipPoint = "BOTTOMRIGHT",
+	anchorWorldObjectType = "normal",
+	anchorWorldObjectPoint = "BOTTOMRIGHT",
 	anchorFrameUnitType = "normal",
 	anchorFrameUnitPoint = "BOTTOMRIGHT",
 	anchorFrameTipType = "normal",
@@ -138,6 +140,8 @@ local TT_DefaultConfig = {
 	mouseOffsetWorldUnitY = 0,
 	mouseOffsetWorldTipX = 0,
 	mouseOffsetWorldTipY = 0,
+	mouseOffsetWorldObjectX = 0,
+	mouseOffsetWorldObjectY = 0,
 	mouseOffsetFrameUnitX = 0,
 	mouseOffsetFrameUnitY = 0,
 	mouseOffsetFrameTipX = 0,
@@ -405,7 +409,7 @@ local TT_TipsToModifyFromOtherMods = {};
 --
 -- defaultAnchored                                   true if tip is default anchored, false otherwise.
 -- defaultAnchoredParentFrame                        tip's parent frame if default anchored, nil otherwise.
--- anchorFrameName                                   anchor frame name of tip, values "WorldUnit", "WorldTip", "FrameUnit", "FrameTip"
+-- anchorFrameName                                   anchor frame name of tip, values "WorldUnit", "WorldTip", "WorldObject", "FrameUnit", "FrameTip"
 -- anchorType                                        anchor type for tip
 -- anchorPoint                                       anchor point for tip
 --
@@ -732,6 +736,19 @@ tt:RegisterEvent("DISPLAY_SIZE_CHANGED");
 function tt:SetupConfig()
 	-- set config
 	configDb, cfg = LibFroznFunctions:CreateDbWithLibAceDB("TipTac_Config", TT_DefaultConfig);
+
+	-- world objects used to be anchored by the World Tip settings: once, start their own settings from those, so
+	-- nothing moves when they get their own
+	if (not cfg.worldObjectAnchorCopiedFromWorldTip) then
+		for _, suffix in ipairs({ "Type", "Point" }) do
+			cfg["anchorWorldObject" .. suffix] = cfg["anchorWorldTip" .. suffix];
+		end
+		for _, axis in ipairs({ "X", "Y" }) do
+			cfg["mouseOffsetWorldObject" .. axis] = cfg["mouseOffsetWorldTip" .. axis];
+		end
+
+		cfg.worldObjectAnchorCopiedFromWorldTip = true;
+	end
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1461,6 +1478,16 @@ function tt:GetAnchorPosition(tip)
 	end
 	
 	local anchorFrameName = (LibFroznFunctions:WorldFrameIsMouseMotionFocus() and "World" or "Frame") .. (isUnit and "Unit" or "Tip");
+
+	-- a world tip that isn't about a unit, spell, item or action is a world object (sign, chest, herb or ore node,
+	-- fishing bobber, mailbox), anchored by its own settings
+	if (anchorFrameName == "WorldTip") then
+		local tipContent = frameParams and frameParams.currentDisplayParams.tipContent;
+
+		if (not LibFroznFunctions:ExistsInTable(tipContent, { TT_TIP_CONTENT.unit, TT_TIP_CONTENT.aura, TT_TIP_CONTENT.spell, TT_TIP_CONTENT.item, TT_TIP_CONTENT.action })) then
+			anchorFrameName = "WorldObject";
+		end
+	end
 	local var = "anchor" .. anchorFrameName;
 	
 	-- consider anchor override during challenge mode, instance, during skyriding or in combat
@@ -2146,7 +2173,7 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 		-- unhandled tip content: only a world object (a tip from hovering the world that isn't a unit, e.g. a fishing
 		-- bobber, herb or ore node, chest or mailbox) is considered, by the "World Objects" options
 		local isHandledTipContent = (LibFroznFunctions:ExistsInTable(tipContent, { TT_TIP_CONTENT.unit, TT_TIP_CONTENT.aura, TT_TIP_CONTENT.spell, TT_TIP_CONTENT.item, TT_TIP_CONTENT.action })) or (isTipFromExpBar);
-		local isWorldObject = (not isHandledTipContent) and (currentDisplayParams.anchorFrameName == "WorldTip");
+		local isWorldObject = (not isHandledTipContent) and ((currentDisplayParams.anchorFrameName == "WorldObject") or (currentDisplayParams.anchorFrameName == "WorldTip"));
 
 		if (not isHandledTipContent) and (not isWorldObject) then
 			return;
