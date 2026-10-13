@@ -151,6 +151,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringChallengeModeInCombatUnitTips = false,
 	hideTipsDuringChallengeModeInCombatSpellTips = false,
 	hideTipsDuringChallengeModeInCombatItemTips = false,
+	hideTipsDuringChallengeModeInCombatTargetTips = false,
 	hideTipsDuringChallengeModeInCombatActionTips = false,
 	hideTipsDuringChallengeModeInCombatExpBarTips = false,
 	
@@ -161,6 +162,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringChallengeModeUnitTips = false,
 	hideTipsDuringChallengeModeSpellTips = false,
 	hideTipsDuringChallengeModeItemTips = false,
+	hideTipsDuringChallengeModeTargetTips = false,
 	hideTipsDuringChallengeModeActionTips = false,
 	hideTipsDuringChallengeModeExpBarTips = false,
 	
@@ -171,6 +173,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringInstanceInCombatUnitTips = false,
 	hideTipsDuringInstanceInCombatSpellTips = false,
 	hideTipsDuringInstanceInCombatItemTips = false,
+	hideTipsDuringInstanceInCombatTargetTips = false,
 	hideTipsDuringInstanceInCombatActionTips = false,
 	hideTipsDuringInstanceInCombatExpBarTips = false,
 	
@@ -181,6 +184,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringInstanceUnitTips = false,
 	hideTipsDuringInstanceSpellTips = false,
 	hideTipsDuringInstanceItemTips = false,
+	hideTipsDuringInstanceTargetTips = false,
 	hideTipsDuringInstanceActionTips = false,
 	hideTipsDuringInstanceExpBarTips = false,
 	
@@ -191,6 +195,7 @@ local TT_DefaultConfig = {
 	hideTipsDuringSkyridingUnitTips = false,
 	hideTipsDuringSkyridingSpellTips = false,
 	hideTipsDuringSkyridingItemTips = false,
+	hideTipsDuringSkyridingTargetTips = false,
 	hideTipsDuringSkyridingActionTips = false,
 	hideTipsDuringSkyridingExpBarTips = false,
 	
@@ -201,6 +206,7 @@ local TT_DefaultConfig = {
 	hideTipsInCombatUnitTips = false,
 	hideTipsInCombatSpellTips = false,
 	hideTipsInCombatItemTips = false,
+	hideTipsInCombatTargetTips = false,
 	hideTipsInCombatActionTips = false,
 	hideTipsInCombatExpBarTips = false,
 
@@ -211,6 +217,7 @@ local TT_DefaultConfig = {
 	hideTipsWhileGatheringUnitTips = false,
 	hideTipsWhileGatheringSpellTips = false,
 	hideTipsWhileGatheringItemTips = false,
+	hideTipsWhileGatheringTargetTips = false,
 	hideTipsWhileGatheringActionTips = false,
 	hideTipsWhileGatheringExpBarTips = false,
 
@@ -221,6 +228,7 @@ local TT_DefaultConfig = {
 	hideTipsUnitTips = false,
 	hideTipsSpellTips = false,
 	hideTipsItemTips = false,
+	hideTipsTargetTips = false,
 	hideTipsActionTips = false,
 	hideTipsExpBarTips = false,
 	
@@ -1217,11 +1225,12 @@ tt:RegisterEvent("PLAYER_REGEN_DISABLED");
 tt:RegisterEvent("UPDATE_BONUS_ACTIONBAR");
 tt:RegisterEvent("MODIFIER_STATE_CHANGED");
 
--- a gathering or fishing cast starting or ending: tips shown now may need hiding
+-- a gathering or fishing cast starting, or a new target: tips shown now may need hiding
 local frameForGatheringCasts = CreateFrame("Frame");
 
 frameForGatheringCasts:RegisterUnitEvent("UNIT_SPELLCAST_START", "player");
 frameForGatheringCasts:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "player");
+frameForGatheringCasts:RegisterEvent("PLAYER_TARGET_CHANGED");
 frameForGatheringCasts:SetScript("OnEvent", function()
 	tt:HideTipsIfNeedToBeHidden();
 end);
@@ -2272,8 +2281,22 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 			return;
 		end
 
+		-- your current target's tip (hovering it in the world or on a unit frame)
+		if (tipContent == TT_TIP_CONTENT.unit) and (cfg["hideTips" .. hidingTip .. "TargetTips"]) then
+			local unitRecord = currentDisplayParams.unitRecord;
+
+			if (unitRecord) and (unitRecord ~= LFF_UNIT_RECORD.SecretValue) and (UnitExists(unitRecord.id)) then
+				local isTarget = UnitIsUnit(unitRecord.id, "target");
+
+				if not (issecretvalue and issecretvalue(isTarget)) and (isTarget) then
+					currentDisplayParams.hideTip = true;
+					return;
+				end
+			end
+		end
+
 		local tipContentName =((tipContent == TT_TIP_CONTENT.unit) and "Unit") or (((tipContent == TT_TIP_CONTENT.aura) or (tipContent == TT_TIP_CONTENT.spell)) and "Spell") or ((tipContent == TT_TIP_CONTENT.item) and "Item") or ((tipContent == TT_TIP_CONTENT.action) and "Action") or (isTipFromExpBar and "ExpBar");
-		
+
 		if (cfg["hideTips" .. hidingTip .. tipContentName .. "Tips"]) then
 			currentDisplayParams.hideTip = true;
 			return;
