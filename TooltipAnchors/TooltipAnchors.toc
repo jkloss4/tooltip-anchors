@@ -1,4 +1,4 @@
-## Interface: 120100, 16001
+## Interface: 120100, 120105, 16001
 ## Version: 1.0.0
 ## IconTexture: Interface/Icons/INV_Misc_Note_01
 ## Title: Tooltip Anchors
