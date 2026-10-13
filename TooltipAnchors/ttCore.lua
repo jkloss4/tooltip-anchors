@@ -38,7 +38,7 @@ local TT_DefaultConfig = {
 	overrideFade = true,
 	preFadeTime = 0.1,
 	fadeTime = 0.1,
-	hideWorldTips = true,
+	worldTipFade = "instant", -- world tips (signs, chests, nodes): "instant", "default" (the game's) or "unit" (the unit fade times)
 	
 	-- anchors
 	enableAnchor = true,
@@ -748,6 +748,13 @@ function tt:SetupConfig()
 	cfg.anchorWorldObjectType, cfg.anchorWorldObjectPoint = nil, nil;
 	cfg.mouseOffsetWorldObjectX, cfg.mouseOffsetWorldObjectY = nil, nil;
 	cfg.worldObjectAnchorCopiedFromWorldTip = nil;
+
+	-- "Instantly Hide World Frame Tips" (hideWorldTips, on by default) became World Tips Fade: off was the game's fade
+	if (cfg.hideWorldTips == false) then
+		cfg.worldTipFade = "default";
+	end
+
+	cfg.hideWorldTips = nil;
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1907,27 +1914,27 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 		-- HOOK: tip's FadeOut() and OnUpdate for custom unit fadeout
 		LibFroznFunctions:CallFunctionDelayed(tipParams.waitSecondsForHooking, function()
 			hooksecurefunc(tip, "FadeOut", function(tip)
-				-- no override of default unit fadeout
-				if (not cfg.overrideFade) then
-					return;
-				end
-				
 				-- get current display parameters
 				local frameParams = TT_CacheForFrames[tip];
-				
+
 				if (not frameParams) then
 					return;
 				end
-				
+
 				local currentDisplayParams = frameParams.currentDisplayParams;
-				
-				-- no unit record
+
+				-- a unit tip uses the custom fadeout while it overrides the default one; a world tip (sign, chest, node)
+				-- uses it when World Tips Fade is "Same as Unit Tooltips"
 				local unitRecord = currentDisplayParams.unitRecord;
-				
-				if (not unitRecord) then
+
+				if (unitRecord) then
+					if (not cfg.overrideFade) then
+						return;
+					end
+				elseif (cfg.worldTipFade ~= "unit") or (tip ~= GameTooltip) or (not tip:IsOwned(UIParent)) then
 					return;
 				end
-				
+
 				-- instant unit fadeout
 				if (cfg.preFadeTime == 0) and (cfg.fadeTime == 0) then
 					tip:Hide();
@@ -2005,7 +2012,7 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 
 -- hide world tips instantly
 function tt:HideWorldTipsInstantly()
-	if (cfg.hideWorldTips) and (GameTooltip:IsShown()) and (GameTooltip:IsOwned(UIParent)) and (not TT_CacheForFrames[GameTooltip].currentDisplayParams.unitRecord) then
+	if (cfg.worldTipFade == "instant") and (GameTooltip:IsShown()) and (GameTooltip:IsOwned(UIParent)) and (not TT_CacheForFrames[GameTooltip].currentDisplayParams.unitRecord) then
 		-- restoring the text of the first line is a workaround so that gatherer addons can get the name of nodes
 		local oldGameTooltipTextLeft1Text = GameTooltipTextLeft1:GetText();
 		
@@ -2027,7 +2034,7 @@ local eventsForHideWorldTipsHooked = false;
 LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 	OnApplyConfig = function(self, TT_CacheForFrames, configDb, cfg, TT_ExtendedConfig)
 		-- register/unregister cursor changed event
-		if (cfg.hideWorldTips) then
+		if (cfg.worldTipFade == "instant") then
 			if (not eventsForHideWorldTipsHooked) then
 				tt:RegisterEvent("CURSOR_CHANGED");
 				eventsForHideWorldTipsHooked = true;

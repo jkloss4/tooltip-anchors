@@ -328,16 +328,14 @@ local options = {
 	{
 		category = "Fading",
 		options = {
-			{ type = "Header", label = "Fading for Unit Tooltips" },
-			
-			{ type = "Check", var = "overrideFade", label = "Enable Override Default GameTooltip Fade for Unit Tooltips", tip = "Overrides the default fadeout function of the GameTooltip for units. If you are seeing problems regarding fadeout, please disable." },
-			
-			{ type = "Slider", var = "preFadeTime", label = "Prefade Time", min = 0, max = 5, step = 0.05, enabled = function(factory) return factory:GetConfigValue("overrideFade") end, y = 10 },
-			{ type = "Slider", var = "fadeTime", label = "Fadeout Time", min = 0, max = 5, step = 0.05, enabled = function(factory) return factory:GetConfigValue("overrideFade") end },
-			
-			{ type = "Header", label = "Others" },
-			
-			{ type = "Check", var = "hideWorldTips", label = "Instantly Hide World Frame Tips", tip = "This option will make most tips which appear from objects in the world disappear instantly when you take the mouse off the object. Examples such as mailboxes, herbs or chests.\nNOTE: Does not work for all world objects." },
+			{ type = "Header", label = "Fading" },
+
+			{ type = "Check", var = "overrideFade", label = "Enable Override Default GameTooltip Fade for Unit Tooltips", tip = "Overrides the default fadeout function of the GameTooltip for units, with the Prefade and Fadeout Times below. If you are seeing problems regarding fadeout, please disable." },
+
+			{ type = "DropDown", var = "worldTipFade", label = "World Tips Fade", tip = "How tooltips for things in the world (signs, chests, mailboxes, herb and ore nodes, fishing bobbers) go away when you move the mouse off them.\nNOTE: Does not work for all world objects.", list = { { "Instantly", "instant" }, { "Game Default", "default" }, { "Same as Unit Tooltips", "unit" } } },
+
+			{ type = "Slider", var = "preFadeTime", label = "Prefade Time", tip = "How long a tooltip stays before it starts to fade.", min = 0, max = 5, step = 0.05, enabled = function(factory) return factory:GetConfigValue("overrideFade") or (factory:GetConfigValue("worldTipFade") == "unit") end, y = 10 },
+			{ type = "Slider", var = "fadeTime", label = "Fadeout Time", tip = "How long the fade takes.", min = 0, max = 5, step = 0.05, enabled = function(factory) return factory:GetConfigValue("overrideFade") or (factory:GetConfigValue("worldTipFade") == "unit") end },
 		}
 	},
 	-- Anchors
