@@ -151,7 +151,8 @@ local TT_DefaultConfig = {
 	hideTipsDuringChallengeModeInCombatUnitTips = false,
 	hideTipsDuringChallengeModeInCombatSpellTips = false,
 	hideTipsDuringChallengeModeInCombatItemTips = false,
-	hideTipsDuringChallengeModeInCombatTargetTips = false,
+	hideTipsDuringChallengeModeInCombatWorldTargetTips = false,
+	hideTipsDuringChallengeModeInCombatFrameTargetTips = false,
 	hideTipsDuringChallengeModeInCombatActionTips = false,
 	hideTipsDuringChallengeModeInCombatExpBarTips = false,
 	
@@ -162,7 +163,8 @@ local TT_DefaultConfig = {
 	hideTipsDuringChallengeModeUnitTips = false,
 	hideTipsDuringChallengeModeSpellTips = false,
 	hideTipsDuringChallengeModeItemTips = false,
-	hideTipsDuringChallengeModeTargetTips = false,
+	hideTipsDuringChallengeModeWorldTargetTips = false,
+	hideTipsDuringChallengeModeFrameTargetTips = false,
 	hideTipsDuringChallengeModeActionTips = false,
 	hideTipsDuringChallengeModeExpBarTips = false,
 	
@@ -173,7 +175,8 @@ local TT_DefaultConfig = {
 	hideTipsDuringInstanceInCombatUnitTips = false,
 	hideTipsDuringInstanceInCombatSpellTips = false,
 	hideTipsDuringInstanceInCombatItemTips = false,
-	hideTipsDuringInstanceInCombatTargetTips = false,
+	hideTipsDuringInstanceInCombatWorldTargetTips = false,
+	hideTipsDuringInstanceInCombatFrameTargetTips = false,
 	hideTipsDuringInstanceInCombatActionTips = false,
 	hideTipsDuringInstanceInCombatExpBarTips = false,
 	
@@ -184,7 +187,8 @@ local TT_DefaultConfig = {
 	hideTipsDuringInstanceUnitTips = false,
 	hideTipsDuringInstanceSpellTips = false,
 	hideTipsDuringInstanceItemTips = false,
-	hideTipsDuringInstanceTargetTips = false,
+	hideTipsDuringInstanceWorldTargetTips = false,
+	hideTipsDuringInstanceFrameTargetTips = false,
 	hideTipsDuringInstanceActionTips = false,
 	hideTipsDuringInstanceExpBarTips = false,
 	
@@ -195,7 +199,8 @@ local TT_DefaultConfig = {
 	hideTipsDuringSkyridingUnitTips = false,
 	hideTipsDuringSkyridingSpellTips = false,
 	hideTipsDuringSkyridingItemTips = false,
-	hideTipsDuringSkyridingTargetTips = false,
+	hideTipsDuringSkyridingWorldTargetTips = false,
+	hideTipsDuringSkyridingFrameTargetTips = false,
 	hideTipsDuringSkyridingActionTips = false,
 	hideTipsDuringSkyridingExpBarTips = false,
 	
@@ -206,7 +211,8 @@ local TT_DefaultConfig = {
 	hideTipsInCombatUnitTips = false,
 	hideTipsInCombatSpellTips = false,
 	hideTipsInCombatItemTips = false,
-	hideTipsInCombatTargetTips = false,
+	hideTipsInCombatWorldTargetTips = false,
+	hideTipsInCombatFrameTargetTips = false,
 	hideTipsInCombatActionTips = false,
 	hideTipsInCombatExpBarTips = false,
 
@@ -217,7 +223,8 @@ local TT_DefaultConfig = {
 	hideTipsWhileGatheringUnitTips = false,
 	hideTipsWhileGatheringSpellTips = false,
 	hideTipsWhileGatheringItemTips = false,
-	hideTipsWhileGatheringTargetTips = false,
+	hideTipsWhileGatheringWorldTargetTips = false,
+	hideTipsWhileGatheringFrameTargetTips = false,
 	hideTipsWhileGatheringActionTips = false,
 	hideTipsWhileGatheringExpBarTips = false,
 
@@ -228,7 +235,8 @@ local TT_DefaultConfig = {
 	hideTipsUnitTips = false,
 	hideTipsSpellTips = false,
 	hideTipsItemTips = false,
-	hideTipsTargetTips = false,
+	hideTipsWorldTargetTips = false,
+	hideTipsFrameTargetTips = false,
 	hideTipsActionTips = false,
 	hideTipsExpBarTips = false,
 	
@@ -743,6 +751,16 @@ function tt:SetupConfig()
 		end
 
 		cfg["hideTips" .. section .. "ObjectTips"] = nil;
+	end
+
+	-- Hide Target Tips was split into World Target and Frame Target: one that was on turns both on
+	for _, section in ipairs(hidingSections) do
+		if (cfg["hideTips" .. section .. "TargetTips"]) then
+			cfg["hideTips" .. section .. "WorldTargetTips"] = true;
+			cfg["hideTips" .. section .. "FrameTargetTips"] = true;
+		end
+
+		cfg["hideTips" .. section .. "TargetTips"] = nil;
 	end
 
 	cfg.anchorWorldObjectType, cfg.anchorWorldObjectPoint = nil, nil;
@@ -2288,9 +2306,12 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 			return;
 		end
 
-		-- your current target's tip (hovering it in the world or on a unit frame). Matched by GUID: when you click a
-		-- hovered unit to target it, "mouseover" isn't your target yet as the target changes, but its GUID is.
-		if (tipContent == TT_TIP_CONTENT.unit) and (cfg["hideTips" .. hidingTip .. "TargetTips"]) then
+		-- your current target's tip, hovering it in the world (World Target) or on a unit frame (Frame Target). Matched by
+		-- GUID: when you click a hovered unit to target it, "mouseover" isn't your target yet as the target changes, but
+		-- its GUID is.
+		local targetTipsVar = "hideTips" .. hidingTip .. ((currentDisplayParams.anchorFrameName == "FrameUnit") and "Frame" or "World") .. "TargetTips";
+
+		if (tipContent == TT_TIP_CONTENT.unit) and (cfg[targetTipsVar]) then
 			local unitRecord = currentDisplayParams.unitRecord;
 
 			if (unitRecord) and (unitRecord ~= LFF_UNIT_RECORD.SecretValue) and (unitRecord.guid) then
