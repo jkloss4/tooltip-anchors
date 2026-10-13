@@ -1635,6 +1635,14 @@ function tt:ResetCurrentDisplayParamsForAnchoring(tip, resetOnlyDefaultAnchor)
 	currentDisplayParams.anchorFrameName, currentDisplayParams.anchorType, currentDisplayParams.anchorPoint = nil, nil, nil;
 end
 
+-- the menu (micro) buttons and bag buttons, matched by name (on retail and WoW: Forever) on the button or up to two
+-- of its parents
+local TT_MenuAndBagButtonFrames = {
+	"^MicroMenu", "^MicroButtonAndBagsBar$", "MicroButton$",
+	"^BagsBar$", "^BagSlotCluster$", "^MainMenuBarBackpackButton$", "^KeyRingButton$", "^BagBarExpandToggle$",
+	"^CharacterBag%dSlot$", "^CharacterReagentBag%dSlot$",
+};
+
 -- register for group events
 LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 	OnTipAddedToCache = function(self, TT_CacheForFrames, tip)
@@ -1690,6 +1698,17 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 			if (tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT") then
 				currentDisplayParams.defaultAnchored = true;
 				currentDisplayParams.defaultAnchoredParentFrame = UIParent;
+			end
+		end
+
+		-- the menu (micro) buttons and bag buttons place their tips beside themselves instead of using the default
+		-- anchor: take them over too, to place them by the Frame Tip settings (a parent anchor uses the button)
+		if (currentDisplayParams.anchorFrameName == "FrameTip") and (not currentDisplayParams.defaultAnchored) and (not tip:IsForbidden()) and (tip == GameTooltip) then
+			local tipOwner = tip:GetOwner();
+
+			if (tipOwner) and (tipOwner ~= UIParent) and (LibFroznFunctions:IsFrameBackInFrameChain(tipOwner, TT_MenuAndBagButtonFrames, 3)) then
+				currentDisplayParams.defaultAnchored = true;
+				currentDisplayParams.defaultAnchoredParentFrame = tipOwner;
 			end
 		end
 	end,
