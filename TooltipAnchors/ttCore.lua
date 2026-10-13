@@ -1045,37 +1045,61 @@ function tt:HideShoppingTips(tip)
 	end
 end
 
--- gathering and fishing casts: herb gathering, mining, skinning and fishing (classic and retail fishing spells).
--- matched by name, so every rank and expansion variant of the cast counts; names come from the game, so it works in
--- any language.
-local TT_GatheringSpellIDs = { 2366, 2575, 8613, 7620, 131474 };
-local TT_GatheringSpellNames;
+-- gathering and fishing casts: a cast whose name contains a gathering profession's name. each expansion has its own
+-- gathering casts on retail (e.g. "Midnight Mining", "Midnight Herbalism"), so the names are matched as part of the
+-- cast's name. they come from the game, so it works in any language.
+local TT_GatheringSkillLineIDs = { 182, 186, 393, 356 }; -- herbalism, mining, skinning, fishing
+local TT_GatheringSpellIDs = { 2366, 2575, 8613, 7620, 131474 }; -- herb gathering, mining, skinning, fishing (classic and retail)
+local TT_GatheringNames;
 
-local function GetGatheringSpellNames()
-	if (not TT_GatheringSpellNames) then
-		TT_GatheringSpellNames = {};
+local function GetGatheringNames()
+	if (TT_GatheringNames) then
+		return TT_GatheringNames;
+	end
 
-		for _, spellID in ipairs(TT_GatheringSpellIDs) do
-			local name = (C_Spell and C_Spell.GetSpellName) and C_Spell.GetSpellName(spellID) or (GetSpellInfo and GetSpellInfo(spellID));
+	local names = {};
 
-			if (name) then
-				TT_GatheringSpellNames[name] = true;
-			end
+	local function add(name)
+		if (type(name) == "string") and (name ~= "") and (not tContains(names, name)) then
+			tinsert(names, name);
 		end
 	end
 
-	return TT_GatheringSpellNames;
+	if (C_TradeSkillUI) and (C_TradeSkillUI.GetTradeSkillDisplayName) then
+		for _, skillLineID in ipairs(TT_GatheringSkillLineIDs) do
+			local ok, name = pcall(C_TradeSkillUI.GetTradeSkillDisplayName, skillLineID);
+
+			add(ok and name);
+		end
+	end
+
+	for _, spellID in ipairs(TT_GatheringSpellIDs) do
+		add((C_Spell and C_Spell.GetSpellName) and C_Spell.GetSpellName(spellID) or (GetSpellInfo and GetSpellInfo(spellID)));
+	end
+
+	-- kept once the game has the names (they may not be loaded yet right after login)
+	if (#names > 0) then
+		TT_GatheringNames = names;
+	end
+
+	return names;
 end
 
 -- whether the player is gathering (herbs, ore, skins) or fishing
 function tt:IsGathering()
-	local name = UnitCastingInfo("player") or UnitChannelInfo("player");
+	local castName = UnitCastingInfo("player") or UnitChannelInfo("player");
 
-	if (not name) or (issecretvalue and issecretvalue(name)) then
+	if (not castName) or (issecretvalue and issecretvalue(castName)) then
 		return false;
 	end
 
-	return (GetGatheringSpellNames()[name] == true);
+	for _, name in ipairs(GetGatheringNames()) do
+		if (castName:find(name, 1, true)) then
+			return true;
+		end
+	end
+
+	return false;
 end
 
 -- hide tips if need to be hidden
