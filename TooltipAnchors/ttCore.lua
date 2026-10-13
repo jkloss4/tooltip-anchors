@@ -1323,8 +1323,8 @@ function tt:SetAnchorToTip(tip)
 	if (tip:GetObjectType() == "GameTooltip") then
 		local tipAnchorType = tip:GetAnchorType();
 		
-		-- ignore world tips
-		if (tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT") then
+		-- ignore world tips (the game places them at the cursor), except world objects, which have their own settings
+		if ((tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT")) and (anchorFrameName ~= "WorldObject") then
 			return;
 		end
 		
@@ -1430,8 +1430,8 @@ function tt:AnchorTipToMouse(tip)
 	if (tip:GetObjectType() == "GameTooltip") then
 		local tipAnchorType = tip:GetAnchorType();
 		
-		-- ignore world tips
-		if (tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT") then
+		-- ignore world tips (the game places them at the cursor), except world objects, which have their own settings
+		if ((tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT")) and (anchorFrameName ~= "WorldObject") then
 			return;
 		end
 		
@@ -1700,6 +1700,17 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 		currentDisplayParams.defaultAnchored = not not currentDisplayParams.defaultAnchored;
 		
 		currentDisplayParams.anchorFrameName, currentDisplayParams.anchorType, currentDisplayParams.anchorPoint = tt:GetAnchorPosition(tip);
+
+		-- world objects (signs, chests, nodes): the game shows their tip at the cursor without its default anchor, so
+		-- take it over as if it were default anchored, to place it by the World Object settings
+		if (currentDisplayParams.anchorFrameName == "WorldObject") and (not currentDisplayParams.defaultAnchored) and (not tip:IsForbidden()) and (tip:GetObjectType() == "GameTooltip") then
+			local tipAnchorType = tip:GetAnchorType();
+
+			if (tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT") then
+				currentDisplayParams.defaultAnchored = true;
+				currentDisplayParams.defaultAnchoredParentFrame = UIParent;
+			end
+		end
 	end,
 	OnTipSetStyling = function(self, TT_CacheForFrames, tip, currentDisplayParams, tipContent)
 		-- set anchor to tip
