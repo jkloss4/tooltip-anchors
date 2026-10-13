@@ -47,8 +47,6 @@ local TT_DefaultConfig = {
 	anchorWorldUnitPoint = "BOTTOMRIGHT",
 	anchorWorldTipType = "normal",
 	anchorWorldTipPoint = "BOTTOMRIGHT",
-	anchorWorldObjectType = "normal",
-	anchorWorldObjectPoint = "BOTTOMRIGHT",
 	anchorFrameUnitType = "normal",
 	anchorFrameUnitPoint = "BOTTOMRIGHT",
 	anchorFrameTipType = "normal",
@@ -140,8 +138,6 @@ local TT_DefaultConfig = {
 	mouseOffsetWorldUnitY = 0,
 	mouseOffsetWorldTipX = 0,
 	mouseOffsetWorldTipY = 0,
-	mouseOffsetWorldObjectX = 0,
-	mouseOffsetWorldObjectY = 0,
 	mouseOffsetFrameUnitX = 0,
 	mouseOffsetFrameUnitY = 0,
 	mouseOffsetFrameTipX = 0,
@@ -155,7 +151,6 @@ local TT_DefaultConfig = {
 	hideTipsDuringChallengeModeInCombatUnitTips = false,
 	hideTipsDuringChallengeModeInCombatSpellTips = false,
 	hideTipsDuringChallengeModeInCombatItemTips = false,
-	hideTipsDuringChallengeModeInCombatObjectTips = false,
 	hideTipsDuringChallengeModeInCombatActionTips = false,
 	hideTipsDuringChallengeModeInCombatExpBarTips = false,
 	
@@ -166,7 +161,6 @@ local TT_DefaultConfig = {
 	hideTipsDuringChallengeModeUnitTips = false,
 	hideTipsDuringChallengeModeSpellTips = false,
 	hideTipsDuringChallengeModeItemTips = false,
-	hideTipsDuringChallengeModeObjectTips = false,
 	hideTipsDuringChallengeModeActionTips = false,
 	hideTipsDuringChallengeModeExpBarTips = false,
 	
@@ -177,7 +171,6 @@ local TT_DefaultConfig = {
 	hideTipsDuringInstanceInCombatUnitTips = false,
 	hideTipsDuringInstanceInCombatSpellTips = false,
 	hideTipsDuringInstanceInCombatItemTips = false,
-	hideTipsDuringInstanceInCombatObjectTips = false,
 	hideTipsDuringInstanceInCombatActionTips = false,
 	hideTipsDuringInstanceInCombatExpBarTips = false,
 	
@@ -188,7 +181,6 @@ local TT_DefaultConfig = {
 	hideTipsDuringInstanceUnitTips = false,
 	hideTipsDuringInstanceSpellTips = false,
 	hideTipsDuringInstanceItemTips = false,
-	hideTipsDuringInstanceObjectTips = false,
 	hideTipsDuringInstanceActionTips = false,
 	hideTipsDuringInstanceExpBarTips = false,
 	
@@ -199,7 +191,6 @@ local TT_DefaultConfig = {
 	hideTipsDuringSkyridingUnitTips = false,
 	hideTipsDuringSkyridingSpellTips = false,
 	hideTipsDuringSkyridingItemTips = false,
-	hideTipsDuringSkyridingObjectTips = false,
 	hideTipsDuringSkyridingActionTips = false,
 	hideTipsDuringSkyridingExpBarTips = false,
 	
@@ -210,7 +201,6 @@ local TT_DefaultConfig = {
 	hideTipsInCombatUnitTips = false,
 	hideTipsInCombatSpellTips = false,
 	hideTipsInCombatItemTips = false,
-	hideTipsInCombatObjectTips = false,
 	hideTipsInCombatActionTips = false,
 	hideTipsInCombatExpBarTips = false,
 
@@ -221,7 +211,6 @@ local TT_DefaultConfig = {
 	hideTipsWhileGatheringUnitTips = false,
 	hideTipsWhileGatheringSpellTips = false,
 	hideTipsWhileGatheringItemTips = false,
-	hideTipsWhileGatheringObjectTips = false,
 	hideTipsWhileGatheringActionTips = false,
 	hideTipsWhileGatheringExpBarTips = false,
 
@@ -232,7 +221,6 @@ local TT_DefaultConfig = {
 	hideTipsUnitTips = false,
 	hideTipsSpellTips = false,
 	hideTipsItemTips = false,
-	hideTipsObjectTips = false,
 	hideTipsActionTips = false,
 	hideTipsExpBarTips = false,
 	
@@ -409,7 +397,7 @@ local TT_TipsToModifyFromOtherMods = {};
 --
 -- defaultAnchored                                   true if tip is default anchored, false otherwise.
 -- defaultAnchoredParentFrame                        tip's parent frame if default anchored, nil otherwise.
--- anchorFrameName                                   anchor frame name of tip, values "WorldUnit", "WorldTip", "WorldObject", "FrameUnit", "FrameTip"
+-- anchorFrameName                                   anchor frame name of tip, values "WorldUnit", "WorldTip", "FrameUnit", "FrameTip"
 -- anchorType                                        anchor type for tip
 -- anchorPoint                                       anchor point for tip
 --
@@ -737,18 +725,21 @@ function tt:SetupConfig()
 	-- set config
 	configDb, cfg = LibFroznFunctions:CreateDbWithLibAceDB("TipTac_Config", TT_DefaultConfig);
 
-	-- world objects used to be anchored by the World Tip settings: once, start their own settings from those, so
-	-- nothing moves when they get their own
-	if (not cfg.worldObjectAnchorCopiedFromWorldTip) then
-		for _, suffix in ipairs({ "Type", "Point" }) do
-			cfg["anchorWorldObject" .. suffix] = cfg["anchorWorldTip" .. suffix];
-		end
-		for _, axis in ipairs({ "X", "Y" }) do
-			cfg["mouseOffsetWorldObject" .. axis] = cfg["mouseOffsetWorldTip" .. axis];
+	-- world objects had their own "Hide World Objects" option (2.2.0, 2.2.1) and briefly anchor settings; they're World
+	-- Tips again: a "Hide World Objects" that was on turns its section's "Hide World Tips" on, and the old settings go.
+	local hidingSections = { "DuringChallengeModeInCombat", "DuringChallengeMode", "DuringInstanceInCombat", "DuringInstance", "DuringSkyriding", "InCombat", "WhileGathering", "" };
+
+	for _, section in ipairs(hidingSections) do
+		if (cfg["hideTips" .. section .. "ObjectTips"]) then
+			cfg["hideTips" .. section .. "WorldTips"] = true;
 		end
 
-		cfg.worldObjectAnchorCopiedFromWorldTip = true;
+		cfg["hideTips" .. section .. "ObjectTips"] = nil;
 	end
+
+	cfg.anchorWorldObjectType, cfg.anchorWorldObjectPoint = nil, nil;
+	cfg.mouseOffsetWorldObjectX, cfg.mouseOffsetWorldObjectY = nil, nil;
+	cfg.worldObjectAnchorCopiedFromWorldTip = nil;
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1323,8 +1314,8 @@ function tt:SetAnchorToTip(tip)
 	if (tip:GetObjectType() == "GameTooltip") then
 		local tipAnchorType = tip:GetAnchorType();
 		
-		-- ignore world tips (the game places them at the cursor), except world objects, which have their own settings
-		if ((tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT")) and (anchorFrameName ~= "WorldObject") then
+		-- ignore tips the game places at the cursor, except world tips (signs, chests, nodes), which the World Tip settings place
+		if ((tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT")) and (anchorFrameName ~= "WorldTip") then
 			return;
 		end
 		
@@ -1430,8 +1421,8 @@ function tt:AnchorTipToMouse(tip)
 	if (tip:GetObjectType() == "GameTooltip") then
 		local tipAnchorType = tip:GetAnchorType();
 		
-		-- ignore world tips (the game places them at the cursor), except world objects, which have their own settings
-		if ((tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT")) and (anchorFrameName ~= "WorldObject") then
+		-- ignore tips the game places at the cursor, except world tips (signs, chests, nodes), which the World Tip settings place
+		if ((tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT")) and (anchorFrameName ~= "WorldTip") then
 			return;
 		end
 		
@@ -1478,16 +1469,6 @@ function tt:GetAnchorPosition(tip)
 	end
 	
 	local anchorFrameName = (LibFroznFunctions:WorldFrameIsMouseMotionFocus() and "World" or "Frame") .. (isUnit and "Unit" or "Tip");
-
-	-- a world tip that isn't about a unit, spell, item or action is a world object (sign, chest, herb or ore node,
-	-- fishing bobber, mailbox), anchored by its own settings
-	if (anchorFrameName == "WorldTip") then
-		local tipContent = frameParams and frameParams.currentDisplayParams.tipContent;
-
-		if (not LibFroznFunctions:ExistsInTable(tipContent, { TT_TIP_CONTENT.unit, TT_TIP_CONTENT.aura, TT_TIP_CONTENT.spell, TT_TIP_CONTENT.item, TT_TIP_CONTENT.action })) then
-			anchorFrameName = "WorldObject";
-		end
-	end
 	local var = "anchor" .. anchorFrameName;
 	
 	-- consider anchor override during challenge mode, instance, during skyriding or in combat
@@ -1701,9 +1682,9 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 		
 		currentDisplayParams.anchorFrameName, currentDisplayParams.anchorType, currentDisplayParams.anchorPoint = tt:GetAnchorPosition(tip);
 
-		-- world objects (signs, chests, nodes): the game shows their tip at the cursor without its default anchor, so
-		-- take it over as if it were default anchored, to place it by the World Object settings
-		if (currentDisplayParams.anchorFrameName == "WorldObject") and (not currentDisplayParams.defaultAnchored) and (not tip:IsForbidden()) and (tip:GetObjectType() == "GameTooltip") then
+		-- world tips (signs, chests, nodes): the game shows them at the cursor without its default anchor, so
+		-- take them over as if they were default anchored, to place them by the World Tip settings
+		if (currentDisplayParams.anchorFrameName == "WorldTip") and (not currentDisplayParams.defaultAnchored) and (not tip:IsForbidden()) and (tip:GetObjectType() == "GameTooltip") then
 			local tipAnchorType = tip:GetAnchorType();
 
 			if (tipAnchorType == "ANCHOR_CURSOR") or (tipAnchorType == "ANCHOR_CURSOR_RIGHT") then
@@ -2181,12 +2162,11 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 			end
 		end
 		
-		-- unhandled tip content: only a world object (a tip from hovering the world that isn't a unit, e.g. a fishing
-		-- bobber, herb or ore node, chest or mailbox) is considered, by the "World Objects" options
+		-- unhandled tip content: only a world tip (e.g. a sign, chest, herb or ore node, fishing bobber or mailbox) is
+		-- considered, by the "World Tips" options
 		local isHandledTipContent = (LibFroznFunctions:ExistsInTable(tipContent, { TT_TIP_CONTENT.unit, TT_TIP_CONTENT.aura, TT_TIP_CONTENT.spell, TT_TIP_CONTENT.item, TT_TIP_CONTENT.action })) or (isTipFromExpBar);
-		local isWorldObject = (not isHandledTipContent) and ((currentDisplayParams.anchorFrameName == "WorldObject") or (currentDisplayParams.anchorFrameName == "WorldTip"));
 
-		if (not isHandledTipContent) and (not isWorldObject) then
+		if (not isHandledTipContent) and (currentDisplayParams.anchorFrameName ~= "WorldTip") then
 			return;
 		end
 		
@@ -2262,18 +2242,14 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 		end
 
 		-- check if tooltip needs to be hidden
-		if (currentDisplayParams.anchorFrameName) and (not isWorldObject) then
+		if (currentDisplayParams.anchorFrameName) then
 			if (cfg["hideTips" .. hidingTip .. currentDisplayParams.anchorFrameName .. "s"]) then
 				currentDisplayParams.hideTip = true;
 				return;
 			end
 		end
 
-		if (isWorldObject) then
-			if (cfg["hideTips" .. hidingTip .. "ObjectTips"]) then
-				currentDisplayParams.hideTip = true;
-			end
-
+		if (not isHandledTipContent) then
 			return;
 		end
 
