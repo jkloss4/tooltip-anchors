@@ -2281,14 +2281,15 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 			return;
 		end
 
-		-- your current target's tip (hovering it in the world or on a unit frame)
+		-- your current target's tip (hovering it in the world or on a unit frame). Matched by GUID: when you click a
+		-- hovered unit to target it, "mouseover" isn't your target yet as the target changes, but its GUID is.
 		if (tipContent == TT_TIP_CONTENT.unit) and (cfg["hideTips" .. hidingTip .. "TargetTips"]) then
 			local unitRecord = currentDisplayParams.unitRecord;
 
-			if (unitRecord) and (unitRecord ~= LFF_UNIT_RECORD.SecretValue) and (UnitExists(unitRecord.id)) then
-				local isTarget = UnitIsUnit(unitRecord.id, "target");
+			if (unitRecord) and (unitRecord ~= LFF_UNIT_RECORD.SecretValue) and (unitRecord.guid) then
+				local targetGUID = UnitGUID("target");
 
-				if not (issecretvalue and issecretvalue(isTarget)) and (isTarget) then
+				if (targetGUID) and not (issecretvalue and (issecretvalue(targetGUID) or issecretvalue(unitRecord.guid))) and (targetGUID == unitRecord.guid) then
 					currentDisplayParams.hideTip = true;
 					return;
 				end
