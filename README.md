@@ -39,7 +39,7 @@ Slash commands: `/tip` (options), `/tip anchor` (show/hide the anchor frame), `/
 ## Install
 
 Download `TooltipAnchors-<version>.zip` from the [latest release](../../releases/latest) and extract the
-`TooltipAnchors` folder into `World of Warcraft\_retail_\Interface\AddOns\` (for WoW: Forever, `_classic_beta_` instead
+`TooltipAnchors` folder into `World of Warcraft\_retail_\Interface\AddOns\` (for WoW: Forever, `_forever_` instead
 of `_retail_`).
 
 To update from the command line (works for a private repo, needs `gh auth login` once):
