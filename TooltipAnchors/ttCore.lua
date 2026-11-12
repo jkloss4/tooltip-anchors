@@ -2235,7 +2235,8 @@ LibFroznFunctions:RegisterForGroupEvents(MOD_NAME, {
 		end
 
 		-- hide tips for own pets/minions (e.g. hunter pets, warlock demons, death knight ghouls, and other combat minions owned/summoned by the player)
-		if (cfg.hideTipsForOwnPets) and (tipContent == TT_TIP_CONTENT.unit) then
+		-- in the world only: the pet frame's tooltip (a frame unit) still shows
+		if (cfg.hideTipsForOwnPets) and (tipContent == TT_TIP_CONTENT.unit) and (currentDisplayParams.anchorFrameName == "WorldUnit") then
 			local unitRecord = currentDisplayParams.unitRecord;
 
 			if (unitRecord) and (unitRecord ~= LFF_UNIT_RECORD.SecretValue) and (UnitExists(unitRecord.id)) and (tt:IsUnitMyPetOrMinion(unitRecord.id, tip)) then
